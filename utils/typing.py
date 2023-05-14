@@ -20,3 +20,5 @@ from typing import (
 )
 
 # Inspire by https://github.com/pandas-dev/pandas/blob/main/pandas/_typing.py
+
+PythonScalar = Union[str, float, bool]
