@@ -1,5 +1,45 @@
+/**
+ * Reset some basic elements
+ */
+ body, h1, h2, h3, h4, h5, h6,
+ p, blockquote, pre, hr,
+ dl, dd, ol, ul, figure {
+   margin: 0;
+   padding: 0;
+ }
+
+ /**
+  * Basic styling
+  */
+ body {
+   font-family: 'Nunito', Helvetica, Arial, sans-serif;
+   font-size: 16px;
+   line-height: 1.5;
+   font-weight: 300;
+   color: #293949;
+   background-color: #fdfdfd;
+   -webkit-text-size-adjust: 100%;
+}
+
+/**
+* Set `margin-bottom` to maintain vertical rhythm
+*/
+h1, h2, h3, h4, h5, h6,
+p, blockquote, pre,
+ul, ol, dl, figure {
+   margin-bottom: 15px;
+}
+
+
 .centered-div {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/**
+* Headings
+*/
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 300;
 }
