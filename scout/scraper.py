@@ -6,6 +6,7 @@ import bs4
 
 from utils.typing import PythonScalar
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import exc
 from db import db, Paper
 import yaml
 import requests
@@ -29,7 +30,7 @@ def scrape():
     """
     config: dict = load_config()
     repositories: list[str] = config.get("repositories", [])
-    current_time: str = datetime.now().isoformat()
+    current_time: str = datetime.now()
     retrieved_paper_ids: list[str] = []
 
     # TODO Add error handling
@@ -53,9 +54,19 @@ def scrape():
 
     # De-dupe and store in the database
     retrieved_paper_ids: list[str] = list(set(retrieved_paper_ids))
+    num_added_ids: int = len(retrieved_paper_ids)
 
-    # TODO Write to database and return stats as json
-    return jsonify({"ids": retrieved_paper_ids})
+    for id in retrieved_paper_ids:
+        try:
+            paper = Paper(arxiv_id=id, index_date=current_time)
+            db.session.add(paper)
+            db.session.commit()
+        except exc.IntegrityError as e:
+            # If the item exists, can ignore
+            num_added_ids = num_added_ids - 1
+
+    return jsonify({"papers_found": len(retrieved_paper_ids),
+                    "papers_added": num_added_ids})
 
 
 def load_config() -> dict:

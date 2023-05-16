@@ -7,6 +7,5 @@ db = SQLAlchemy()
 
 # This will be used to create / access a table called paper
 class Paper(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    arxiv_id = db.Column(db.String, primary_key=True)
     index_date = db.Column(db.TIMESTAMP, nullable=False)
-    arxiv_id = db.Column(db.String, unique=True, nullable=False)
