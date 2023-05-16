@@ -39,6 +39,10 @@ def create_app(test_config=None):
     app.register_blueprint(viewer.bp)
     app.add_url_rule("/", endpoint="index")
 
+    import scraper
+    app.register_blueprint(scraper.bp)
+    app.add_url_rule("/scrape", endpoint="scrape")
+
     return app
 
 
