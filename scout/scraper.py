@@ -31,10 +31,10 @@ def scrape():
     """
     config: dict = load_config()
     repositories: list[str] = config.get("repositories", [])
-    current_time: str = datetime.now()
+    current_time: datetime = datetime.now()
     retrieved_paper_ids: list[str] = []
 
-    # TODO Add error handling
+    # TODO Add error handling and logging
     for repository in repositories:
         # This could be improved by making the requests async or non-blocking
         time.sleep(config.get("seconds_per_request", 4))
