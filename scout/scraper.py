@@ -6,7 +6,8 @@ import bs4
 
 from utils.typing import PythonScalar
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import exc
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import sessionmaker
 from db import db, Paper
 import yaml
 import requests
@@ -56,14 +57,21 @@ def scrape():
     retrieved_paper_ids: list[str] = list(set(retrieved_paper_ids))
     num_added_ids: int = len(retrieved_paper_ids)
 
+    # Start the session
+    Session = sessionmaker(bind=db.engine)
+    session = Session()
+
     for id in retrieved_paper_ids:
         try:
             paper = Paper(arxiv_id=id, index_date=current_time)
-            db.session.add(paper)
-            db.session.commit()
-        except exc.IntegrityError as e:
+            session.add(paper)
+            session.commit()
+        except IntegrityError as e:
             # If the item exists, can ignore
+            session.rollback()
             num_added_ids = num_added_ids - 1
+
+    session.close()
 
     return jsonify({"papers_found": len(retrieved_paper_ids),
                     "papers_added": num_added_ids})
