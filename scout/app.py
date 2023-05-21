@@ -4,6 +4,9 @@ from utils.typing import PythonScalar
 from flask import Flask, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from db import db, Paper
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def create_app(config=None, instance_path=None) -> Flask:
@@ -26,6 +29,7 @@ def create_app(config=None, instance_path=None) -> Flask:
 
     # Handle configuration and initialisation
     configure_app(app, config)
+    configure_logging(app)
     configure_blueprints(app)
 
     return app
@@ -39,15 +43,41 @@ def configure_app(app: Flask, config):
     :param config: Nullable config
     """
 
-    # Setup logging
-    #configure_logging(app)
-    #logger.info("Using config from: {}".format(config_name))
-
     app.config.from_mapping(
         SECRET_KEY='dev',
         SQLALCHEMY_DATABASE_URI="sqlite:///scout.sqlite",
         SQLALCHEMY_TRACK_MODIFICATIONS=False
     )
+
+
+def configure_logging(app: Flask):
+    """
+    Setup logging
+
+    :param app: Flask application for configuration
+    """
+
+    # Create handlers
+    console_handler = logging.StreamHandler()  # Console handler
+    file_handler = logging.FileHandler("logs/scout.log")  # File handler
+
+    # Set level of logging
+    logger.setLevel(logging.DEBUG)  # Could be ERROR, WARNING, INFO, DEBUG
+    console_handler.setLevel(logging.DEBUG)
+    file_handler.setLevel(logging.DEBUG)
+
+    # Create formatters and add it to handlers
+    console_format = logging.Formatter("%(asctime)s - %(name)s - %(module)s:%(lineno)d - %(levelname)-8s - %(message)s")
+    file_format = logging.Formatter("%(asctime)s - %(name)s - %(module)s:%(lineno)d - %(levelname)-8s - %(message)s")
+    console_handler.setFormatter(console_format)
+    file_handler.setFormatter(file_format)
+
+    # Add handlers to the logger
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
+
+    # Test the configuration
+    logger.debug("Logging initialised")
 
 
 def configure_blueprints(app: Flask):

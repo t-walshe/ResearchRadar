@@ -19,6 +19,9 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
 )
 from werkzeug.exceptions import abort
+import logging
+
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("scrape", __name__)
 
