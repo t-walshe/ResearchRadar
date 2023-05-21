@@ -1,11 +1,10 @@
 {% extends 'base.html' %}
 
-{% block header %}
-<div class="centered-div">
-  <h1>{% block title %}Scout{% endblock %}</h1>
-</div>
+{% block title %}Scout{% endblock %}
+
+{% block content %}
+<h2>Indexing arXiv</h2>
 <p>Scout maintains an up-to-date index of papers available on arXiv.
   Entries are composed of the unique arXiv ID and the original date of publication or time of indexing.
   As of {{ current_time }}, there are {{ num_papers }} papers indexed.</p>
-
 {% endblock %}

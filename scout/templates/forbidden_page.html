@@ -1,11 +1,8 @@
 {% extends 'base.html' %}
 
-{% block header %}
-<div class="centered-div">
-  <h1>{% block title %}403{% endblock %}</h1>
-</div>
+{% block title %}403{% endblock %}
 
-<div class="centered-div">
-  <p>Page not accessible on Scout.</p>
-</div>
+{% block content %}
+<h2>403</h2>
+<p>Page not accessible on Scout.</p>
 {% endblock %}

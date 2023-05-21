@@ -12,13 +12,13 @@
   * Basic styling
   */
  body {
-   font-family: 'Nunito', Helvetica, Arial, sans-serif;
-   font-size: 16px;
-   line-height: 1.5;
-   font-weight: 300;
-   color: #293949;
-   background-color: #fdfdfd;
-   -webkit-text-size-adjust: 100%;
+     font-family: 'Nunito', Helvetica, Arial, sans-serif;
+     font-size: 16px;
+     line-height: 1.5;
+     font-weight: 300;
+     color: #293949;
+     background-color: #fdfdfd;
+     -webkit-text-size-adjust: 100%;
 }
 
 /**
