@@ -6,29 +6,56 @@ from flask_sqlalchemy import SQLAlchemy
 from db import db, Paper
 
 
-def create_app(test_config=None):
-    # create and configure the app
-    app = Flask(__name__, instance_relative_config=True)
+def create_app(config=None, instance_path=None) -> Flask:
+    """
+    Create Flask application
+
+    :param config: Configuration file or object
+    :param instance_path: Alternative location of instance directory
+    :return: Initialised application
+    """
+
+    app = Flask("Scout", instance_path=instance_path, instance_relative_config=True)
+
+    # Ensure that the instance directory exists, if not, create one
+    if not os.path.exists(app.instance_path):
+        try:
+            os.makedirs(app.instance_path)
+        except OSError as e:
+            exit(-1)
+
+    # Handle configuration and initialisation
+    configure_app(app, config)
+    configure_blueprints(app)
+
+    return app
+
+
+def configure_app(app: Flask, config):
+    """
+    Configure the application
+
+    :param app: Flask application for configuration
+    :param config: Nullable config
+    """
+
+    # Setup logging
+    #configure_logging(app)
+    #logger.info("Using config from: {}".format(config_name))
+
     app.config.from_mapping(
         SECRET_KEY='dev',
-        # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
-        # configure the SQLite database, relative to the app instance folder
         SQLALCHEMY_DATABASE_URI="sqlite:///scout.sqlite",
         SQLALCHEMY_TRACK_MODIFICATIONS=False
     )
 
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        app.config.from_pyfile('config.py', silent=True)
-    else:
-        # load the test config if passed in
-        app.config.from_mapping(test_config)
 
-    # ensure the instance folder exists
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
+def configure_blueprints(app: Flask):
+    """
+    Import and initialise all blueprints
+
+    :param app: Flask application for configuration
+    """
 
     # create the extension and initialize the app with the extension
     db.init_app(app)
@@ -42,8 +69,6 @@ def create_app(test_config=None):
     import scraper
     app.register_blueprint(scraper.bp)
     app.add_url_rule("/scrape", endpoint="scrape")
-
-    return app
 
 
 if __name__ == "__main__":
