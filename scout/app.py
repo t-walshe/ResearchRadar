@@ -31,6 +31,7 @@ def create_app(config=None, instance_path=None) -> Flask:
     configure_app(app, config)
     configure_logging(app)
     configure_blueprints(app)
+    configure_error_handlers(app)
 
     return app
 
@@ -99,6 +100,26 @@ def configure_blueprints(app: Flask):
     import scraper
     app.register_blueprint(scraper.bp)
     app.add_url_rule("/scrape", endpoint="scrape")
+
+
+def configure_error_handlers(app: Flask):
+    """
+    Add the error pages
+
+    :param app: Flask application for configuration
+    """
+
+    @app.errorhandler(403)
+    def forbidden_page(error):
+        return render_template("forbidden_page.html"), 403
+
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return render_template("page_not_found.html"), 404
+
+    @app.errorhandler(500)
+    def server_error_page(error):
+        return render_template("server_error.html"), 500
 
 
 if __name__ == "__main__":
