@@ -8,7 +8,7 @@ from utils.typing import PythonScalar
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
-from db import db, Paper
+from db import db, Paper, Metric
 import yaml
 import requests
 import time
@@ -64,20 +64,31 @@ def scrape():
     Session = sessionmaker(bind=db.engine)
     session = Session()
 
+    # Write all IDs to the database
     for id in retrieved_paper_ids:
         try:
             paper = Paper(arxiv_id=id, index_date=current_time)
             session.add(paper)
             session.commit()
         except IntegrityError as e:
-            # If the item exists, can ignore
+            # If the item exists, can ignore, don't log
             session.rollback()
             num_added_ids = num_added_ids - 1
 
+    # Add metrics to database
+    try:
+        metric = Metric(index_date=current_time,
+                        papers_found=len(retrieved_paper_ids),
+                        papers_added=num_added_ids)
+        session.add(metric)
+        session.commit()
+    except IntegrityError as e:
+        # If a metric with the same timestamp exists, ignore and rollback
+        session.rollback()
+
     session.close()
 
-    return jsonify({"papers_found": len(retrieved_paper_ids),
-                    "papers_added": num_added_ids})
+    return redirect(url_for("index"))
 
 
 def load_config() -> dict:
