@@ -1,4 +1,5 @@
 from __future__ import annotations
+from math import pi
 from datetime import datetime
 import os
 
@@ -96,6 +97,16 @@ def scrape():
     return redirect(url_for("index"))
 
 
+@bp.route('/refresh')
+def refresh():
+    """
+    Refresh / regenerate any visualisations
+    """
+
+    res: bool = render_metrics_to_bokeh()
+    return redirect(url_for("index"))
+
+
 def load_config() -> dict:
     with open("config/config.yml", "r") as file:
         config = yaml.safe_load(file)
@@ -162,7 +173,7 @@ def render_metrics_to_bokeh() -> bool:
     if not metrics:
         return False
 
-    dates: list[str] = [metric.index_date.strftime("%d/%m/%Y %H:%M:%S") for metric in metrics]
+    dates: list[str] = [metric.index_date.strftime("%d/%m/%y %H:%M:%S") for metric in metrics]
     papers_found: list[int] = [metric.papers_found for metric in metrics]
     papers_added: list[int] = [metric.papers_added for metric in metrics]
 
@@ -180,7 +191,7 @@ def render_metrics_to_bokeh() -> bool:
     p.vbar(x="dates", top="Found", width=0.9, line_width=0, source=data, legend_label="Found", color="#718dbf")
     p.vbar(x="dates", top="Added", width=0.9, line_width=0, source=data, legend_label="Added", color="#FFB4B4")
 
-    p.xaxis.major_label_orientation = "vertical"
+    p.xaxis.major_label_orientation = pi/3
     p.y_range.start = 0
     p.x_range.range_padding = 0.1
     p.xgrid.grid_line_color = None
@@ -189,7 +200,6 @@ def render_metrics_to_bokeh() -> bool:
     p.legend.location = "top_left"
     p.legend.orientation = "horizontal"
     p.legend.click_policy = "hide"
-
 
     # set output to static HTML file - change these as desired
     filename = os.path.join(current_app.instance_path, 'unformatted_graph.html')

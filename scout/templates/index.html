@@ -20,4 +20,15 @@
   {{ graph_data | safe }}
 {% endif %}
 
+
+<div class="container mt-4">
+  <a href="{{ url_for('scrape') }}" class="text-decoration-none">
+      <button type="button" class="btn btn-primary">Manual Scrape</button>
+  </a>
+
+  <a href="{{ url_for('refresh') }}" class="text-decoration-none">
+      <button type="button" class="btn btn-secondary">Refresh Graph</button>
+  </a>
+</div>
+
 {% endblock %}

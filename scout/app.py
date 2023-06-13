@@ -100,6 +100,7 @@ def configure_blueprints(app: Flask):
     import scraper
     app.register_blueprint(scraper.bp)
     app.add_url_rule("/scrape", endpoint="scrape")
+    app.add_url_rule("/refresh", endpoint="refresh")
 
 
 def configure_error_handlers(app: Flask):
