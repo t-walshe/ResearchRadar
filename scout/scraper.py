@@ -177,9 +177,10 @@ def render_metrics_to_bokeh() -> bool:
                title="Scraping metrics",
                toolbar_location=None)
 
-    p.vbar(x="dates", top="Found", width=0.9, line_width=0, source=data, legend_label="Found", color="#9a98b3")
+    p.vbar(x="dates", top="Found", width=0.9, line_width=0, source=data, legend_label="Found", color="#718dbf")
     p.vbar(x="dates", top="Added", width=0.9, line_width=0, source=data, legend_label="Added", color="#FFB4B4")
 
+    p.xaxis.major_label_orientation = "vertical"
     p.y_range.start = 0
     p.x_range.range_padding = 0.1
     p.xgrid.grid_line_color = None
@@ -188,6 +189,7 @@ def render_metrics_to_bokeh() -> bool:
     p.legend.location = "top_left"
     p.legend.orientation = "horizontal"
     p.legend.click_policy = "hide"
+
 
     # set output to static HTML file - change these as desired
     filename = os.path.join(current_app.instance_path, 'unformatted_graph.html')
