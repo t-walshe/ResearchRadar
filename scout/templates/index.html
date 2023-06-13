@@ -7,4 +7,17 @@
 <p>Scout maintains an up-to-date index of papers available on arXiv.
   Entries are composed of the unique arXiv ID and the original date of publication or time of indexing.
   As of {{ current_time }}, there are {{ num_papers }} papers indexed.</p>
+
+{% if graph_data %}
+  {% if cdn_js %}
+    <script type="text/javascript" src= {{ cdn_js }}></script>
+  {% endif %}
+
+  {% if cdn_css %}
+    <link rel="stylesheet" href={{ cdn_css }} type="text/css" />
+  {% endif %}
+
+  {{ graph_data | safe }}
+{% endif %}
+
 {% endblock %}

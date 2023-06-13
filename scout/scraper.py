@@ -12,11 +12,13 @@ from db import db, Paper, Metric
 import yaml
 import requests
 import time
+
+from pathlib import Path
+from bokeh.plotting import figure, show, output_file, save
 from bs4 import BeautifulSoup
 
-
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify
+    Blueprint, flash, g, redirect, render_template, request, url_for, jsonify, current_app
 )
 from werkzeug.exceptions import abort
 import logging
@@ -88,6 +90,9 @@ def scrape():
 
     session.close()
 
+    # Regenerate the graphs
+    res: bool = render_metrics_to_bokeh()
+
     return redirect(url_for("index"))
 
 
@@ -144,3 +149,60 @@ def extract_paper_ids(content: bytes, include: list[str] | None = None) -> list[
         ids: list[str] = list(set(ids))
 
     return ids
+
+
+def render_metrics_to_bokeh() -> bool:
+    """
+    Read the metrics table and render as a bar chart saved in the instance folder
+    """
+
+    # Sort by index date and return the entire table
+    metrics: list[Metric] = Metric.query.order_by(Metric.index_date.asc()).all()
+
+    if not metrics:
+        return False
+
+    dates: list[str] = [metric.index_date.strftime("%d/%m/%Y %H:%M:%S") for metric in metrics]
+    papers_found: list[int] = [metric.papers_found for metric in metrics]
+    papers_added: list[int] = [metric.papers_added for metric in metrics]
+
+    data: dict = {"dates": dates,
+                  "Found": papers_found,
+                  "Added": papers_added}
+
+    p = figure(x_range=dates,
+               height=512,
+               max_width=int(512 * 1.4),
+               sizing_mode="scale_width",
+               title="Scraping metrics",
+               toolbar_location=None)
+
+    p.vbar(x="dates", top="Found", width=0.9, line_width=0, source=data, legend_label="Found", color="#9a98b3")
+    p.vbar(x="dates", top="Added", width=0.9, line_width=0, source=data, legend_label="Added", color="#FFB4B4")
+
+    p.y_range.start = 0
+    p.x_range.range_padding = 0.1
+    p.xgrid.grid_line_color = None
+    p.axis.minor_tick_line_color = None
+    p.outline_line_color = None
+    p.legend.location = "top_left"
+    p.legend.orientation = "horizontal"
+    p.legend.click_policy = "hide"
+
+    # set output to static HTML file - change these as desired
+    filename = os.path.join(current_app.instance_path, 'unformatted_graph.html')
+    output_file(filename=filename, title="Static HTML file")
+    _ = save(p)
+
+    # Load the generated plot, extract the body, place in container
+    parsed_html = BeautifulSoup(Path(filename).read_text())
+    body = parsed_html.find('body')
+
+    content: list = [str(tag) for tag in body.contents]
+    content.insert(0, '<div class="container" style="display: flex; justify-content: center;">')
+    content.append('</div>')
+
+    filename = os.path.join(current_app.instance_path, 'formatted_graph.html')
+    _ = Path(filename).write_text(" ".join(content))
+
+    return True
