@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 from utils.typing import PythonScalar
+from utils.default_logging import configure_default_logging
 from flask import Flask, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from db import db, Paper
@@ -33,6 +34,8 @@ def create_app(config=None, instance_path=None) -> Flask:
     configure_blueprints(app)
     configure_error_handlers(app)
 
+    logger.info("Application launched successfully")
+
     return app
 
 
@@ -58,27 +61,11 @@ def configure_logging(app: Flask):
     :param app: Flask application for configuration
     """
 
-    # Create handlers
-    console_handler = logging.StreamHandler()  # Console handler
-    file_handler = logging.FileHandler("logs/scout.log")  # File handler
-
-    # Set level of logging
-    logger.setLevel(logging.DEBUG)  # Could be ERROR, WARNING, INFO, DEBUG
-    console_handler.setLevel(logging.DEBUG)
-    file_handler.setLevel(logging.DEBUG)
-
-    # Create formatters and add it to handlers
-    console_format = logging.Formatter("%(asctime)s - %(name)s - %(module)s:%(lineno)d - %(levelname)-8s - %(message)s")
-    file_format = logging.Formatter("%(asctime)s - %(name)s - %(module)s:%(lineno)d - %(levelname)-8s - %(message)s")
-    console_handler.setFormatter(console_format)
-    file_handler.setFormatter(file_format)
-
-    # Add handlers to the logger
-    logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
+    # Configure
+    configure_default_logging(logger, "logs/scout.log")
 
     # Test the configuration
-    logger.debug("Logging initialised")
+    logger.info(f"Logging initialised from {__name__}")
 
 
 def configure_blueprints(app: Flask):
@@ -102,6 +89,10 @@ def configure_blueprints(app: Flask):
     app.add_url_rule("/scrape", endpoint="scrape")
     app.add_url_rule("/refresh", endpoint="refresh")
 
+    import log_viewer
+    app.register_blueprint(log_viewer.bp)
+    app.add_url_rule("/logs", endpoint="get_latest_logs")
+
 
 def configure_error_handlers(app: Flask):
     """
@@ -112,14 +103,17 @@ def configure_error_handlers(app: Flask):
 
     @app.errorhandler(403)
     def forbidden_page(error):
+        logger.info("Attempted to access forbidden page")
         return render_template("forbidden_page.html"), 403
 
     @app.errorhandler(404)
     def page_not_found(error):
+        logger.info("Attempted to access page that does not exist")
         return render_template("page_not_found.html"), 404
 
     @app.errorhandler(500)
     def server_error_page(error):
+        logger.info("Server error")
         return render_template("server_error.html"), 500
 
 

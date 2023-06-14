@@ -1,4 +1,5 @@
 from __future__ import annotations
+from utils.default_logging import configure_default_logging
 from math import pi
 from datetime import datetime
 import os
@@ -23,8 +24,10 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 import logging
-
 logger = logging.getLogger(__name__)
+logger.propagate = True
+configure_default_logging(logger, "logs/scout.log")
+logger.info(f"Logging initialised from {__name__}")
 
 bp = Blueprint("scrape", __name__)
 
@@ -93,6 +96,8 @@ def scrape():
 
     # Regenerate the graphs
     res: bool = render_metrics_to_bokeh()
+    logger.info(f"Regenerating metrics visualisation")
+    logger.info(f"Found {len(retrieved_paper_ids)} paper and stored {num_added_ids}")
 
     return redirect(url_for("index"))
 
@@ -104,6 +109,7 @@ def refresh():
     """
 
     res: bool = render_metrics_to_bokeh()
+    logger.info(f"Regenerating metrics visualisation")
     return redirect(url_for("index"))
 
 
@@ -207,7 +213,7 @@ def render_metrics_to_bokeh() -> bool:
     _ = save(p)
 
     # Load the generated plot, extract the body, place in container
-    parsed_html = BeautifulSoup(Path(filename).read_text())
+    parsed_html = BeautifulSoup(Path(filename).read_text(), "html.parser")
     body = parsed_html.find('body')
 
     content: list = [str(tag) for tag in body.contents]
