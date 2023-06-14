@@ -18,8 +18,8 @@ def configure_default_logging(logger: Logger, filepath: str):
     file_handler.setLevel(logging.DEBUG)
 
     # Create formatters and add it to handlers
-    console_format = logging.Formatter("%(asctime)s - %(name)s - %(module)s:%(lineno)d - %(levelname)-8s - %(message)s")
-    file_format = logging.Formatter("%(asctime)s - %(name)s - %(module)s:%(lineno)d - %(levelname)-8s - %(message)s")
+    console_format = logging.Formatter("%(asctime)-24s %(name)-16s %(module)-16s %(levelname)-8s %(message)-32s")
+    file_format = logging.Formatter("%(asctime)s -*- %(name)s -*- %(module)s:%(lineno)d -*- %(levelname)s -*- %(message)s")
     console_handler.setFormatter(console_format)
     file_handler.setFormatter(file_format)
 

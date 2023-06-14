@@ -38,4 +38,20 @@ def get_latest_logs(entries: int):
     else:
         data: list[str] = []
 
-    return jsonify(data)
+    # Pre-process the strings
+    formatted_data: list[dict] = []
+    for entry in data:
+        items: list[str] = entry.split("-*-")
+
+        if len(items) != 5:
+            logger.warning("Entry in log is malformed")
+
+        clean_entry: dict = {}
+        clean_entry["time"] = items[0].strip()
+        clean_entry["name"] = items[1].strip()
+        clean_entry["location"] = items[2].strip()
+        clean_entry["level"] = items[3].strip()
+        clean_entry["message"] = items[4].strip()
+        formatted_data.append(clean_entry)
+
+    return jsonify(formatted_data)
