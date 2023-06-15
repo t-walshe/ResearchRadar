@@ -197,7 +197,9 @@ def export_papers():
 
     # Read all papers from the database
     data: list = Paper.query.all()
+    logger.info(f"Handling export of papers")
     data: list[dict] = [{"Id": entry.arxiv_id, "Date": entry.index_date} for entry in data]
+    logger.info(f"Exported {len(data)} papers")
 
     # Use Pandas to convert to CSV
     df = pd.DataFrame(data)
