@@ -83,6 +83,7 @@ def configure_blueprints(app: Flask):
     import viewer
     app.register_blueprint(viewer.bp)
     app.add_url_rule("/", endpoint="index")
+    app.add_url_rule("/papers", endpoint="get_papers")
 
     import scraper
     app.register_blueprint(scraper.bp)

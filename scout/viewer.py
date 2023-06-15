@@ -1,15 +1,18 @@
 from __future__ import annotations
 from utils.default_logging import configure_default_logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from utils.typing import PythonScalar
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import select
 from db import db, Paper, Metric
 import yaml
 from pathlib import Path
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, current_app
+    Blueprint, flash, g, redirect, render_template, request, url_for, current_app, jsonify
 )
 
 from bokeh.resources import CDN
@@ -54,3 +57,50 @@ def index():
                            graph_data=graph_data,
                            cdn_js=cdn_js,
                            cdn_css=cdn_css)
+
+
+@bp.route('/papers', methods=['GET'])
+def get_papers():
+    """
+    Endpoint used to return arXiv IDs from the database
+
+    Note that the result is [start_date, end_date)
+
+    Example usage
+    papers?start_date=01-01-2023&end_date=01-06-2023
+    """
+
+    # Get query parameters (defaults to None if not in dict)
+    start_date: str | None = request.args.get("start_date")
+    end_date: str | None = request.args.get("end_date")
+
+    # If no start date is supplied, default to yesterday, else convert to a datetime object
+    if not start_date:
+        start_date: datetime = datetime.now() - timedelta(days=1)
+    else:
+        try:
+            start_date: datetime = datetime.strptime(start_date, "%d-%m-%Y")
+        except ValueError as e:
+            logger.error(e)
+            # Return an empty list of IDs and an error code
+            return jsonify([]), 500
+
+    # If no end date is supplied, default to now, else convert to a datetime object
+    if not end_date:
+        end_date: datetime = datetime.now()
+    else:
+        try:
+            end_date: datetime = datetime.strptime(end_date, "%d-%m-%Y")
+        except ValueError as e:
+            logger.error(e)
+            return jsonify([]), 500
+
+    # Using the start and end date, select the relevant IDs from the database
+    Session = sessionmaker(bind=db.engine)
+    session = Session()
+    stmt = select(Paper.arxiv_id).where(Paper.index_date >= start_date, Paper.index_date <= end_date)
+    ids: list[str] = sorted([row[0] for row in session.execute(stmt)])
+    session.close()
+
+    return jsonify(ids), 200
+

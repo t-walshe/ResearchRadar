@@ -174,6 +174,7 @@ def render_metrics_to_bokeh() -> bool:
     """
 
     # Sort by index date and return the entire table
+    # TODO Update to newer select method
     metrics: list[Metric] = Metric.query.order_by(Metric.index_date.asc()).all()
 
     if not metrics:
