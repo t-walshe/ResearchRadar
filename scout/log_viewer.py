@@ -16,7 +16,6 @@ logger.info(f"Logging initialised from {__name__}")
 
 bp = Blueprint("log", __name__)
 
-
 # TODO Rewrite this with proper args
 @bp.route("/logs/<int:entries>", methods=["GET"])
 @bp.route("/logs", defaults={"entries": 0}, methods=["GET"])

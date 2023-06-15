@@ -50,7 +50,8 @@ def configure_app(app: Flask, config):
     app.config.from_mapping(
         SECRET_KEY='dev',
         SQLALCHEMY_DATABASE_URI="sqlite:///scout.sqlite",
-        SQLALCHEMY_TRACK_MODIFICATIONS=False
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        MAX_CONTENT_LENGTH=16 * 1000 * 1000  # 16 MB max for uploaded files
     )
 
 
@@ -84,6 +85,7 @@ def configure_blueprints(app: Flask):
     app.register_blueprint(viewer.bp)
     app.add_url_rule("/", endpoint="index")
     app.add_url_rule("/papers", endpoint="get_papers")
+    app.add_url_rule("/upload", endpoint="upload_papers")
 
     import scraper
     app.register_blueprint(scraper.bp)

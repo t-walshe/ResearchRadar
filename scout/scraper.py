@@ -71,9 +71,9 @@ def scrape():
     session = Session()
 
     # Write all IDs to the database
-    for id in retrieved_paper_ids:
+    for arxiv_id in retrieved_paper_ids:
         try:
-            paper = Paper(arxiv_id=id, index_date=current_time)
+            paper = Paper(arxiv_id=arxiv_id, index_date=current_time)
             session.add(paper)
             session.commit()
         except IntegrityError as e:
@@ -97,7 +97,7 @@ def scrape():
     # Regenerate the graphs
     res: bool = render_metrics_to_bokeh()
     logger.info(f"Regenerating metrics visualisation")
-    logger.info(f"Found {len(retrieved_paper_ids)} paper and stored {num_added_ids}")
+    logger.info(f"Found {len(retrieved_paper_ids)} papers and stored {num_added_ids}")
 
     return redirect(url_for("index"))
 

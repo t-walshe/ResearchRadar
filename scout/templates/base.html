@@ -47,7 +47,11 @@
     <div class="container mt-4">
       <section class="content">
         {% for message in get_flashed_messages() %}
-        <div class="flash">{{ message }}</div>
+        <div class="row justify-content-center">
+          <div class="col-md-8">
+            <div class="flash"><p><strong>Message:</strong> {{ message }}</p></div>
+          </div>
+        </div>
         {% endfor %}
 
         <div class="row justify-content-center">

@@ -11,6 +11,8 @@ from db import db, Paper, Metric
 import yaml
 from pathlib import Path
 
+import pandas as pd
+
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for, current_app, jsonify
 )
@@ -18,6 +20,8 @@ from flask import (
 from bokeh.resources import CDN
 
 from werkzeug.exceptions import abort
+from werkzeug.utils import secure_filename
+
 import logging
 logger = logging.getLogger(__name__)
 logger.propagate = True
@@ -104,3 +108,90 @@ def get_papers():
 
     return jsonify(ids), 200
 
+
+@bp.route("/upload", methods=["GET", "POST"])
+def upload_papers():
+    """
+    Endpoint that handles the uploading of a CSV file of entries to be added to the paper database
+    """
+    # Handle the file upload
+    if request.method == "POST":
+        if "file" not in request.files:
+            flash("Failed to handle file, not found")
+            return redirect(url_for("index"))
+
+        # Check that the file exists
+        file = request.files['file']
+        if not file:
+            flash("Failed to handle file, not valid")
+            return redirect(url_for("index"))
+
+        # Check for an empty filename
+        if file.filename == "":
+            flash("Failed to handle file, empty filename")
+            return redirect(url_for("index"))
+
+        # Check file valid file type
+        filename, file_extension = os.path.splitext(file.filename)
+        if file_extension != ".csv":
+            flash("Failed to handle file, not a CSV")
+            return redirect(url_for("index"))
+
+        # Sanitize the filename for logging
+        filename: str = secure_filename(file.filename)
+        logger.info(f"Handling upload of {filename}")
+
+        # Use Pandas to read the file stream
+        df: pd.DataFrame = pd.read_csv(file.stream, dtype={"Id": str, "Date": str})
+
+        # Ensure that the correct columns exist
+        necessary_columns: list[str] = ["Id", "Date"]
+        for col in necessary_columns:
+            if col not in df.columns:
+                flash("Failed to handle file, incorrect columns")
+                return redirect(url_for("index"))
+
+        # Additional columns can be ignored
+        df = df[necessary_columns]
+
+        # Covert column to datetime object
+        df["Date"] = pd.to_datetime(df["Date"])
+
+        # De-dupe and store in the database
+        retrieved_paper_ids: list[str] = df["Id"].unique().tolist()
+        num_added_ids: int = len(retrieved_paper_ids)
+
+        # Start the session
+        Session = sessionmaker(bind=db.engine)
+        session = Session()
+
+        # Write all IDs to the database
+        for index, row in df.iterrows():
+            arxiv_id = row["Id"]
+            date = row["Date"]
+            try:
+                paper = Paper(arxiv_id=arxiv_id, index_date=date)
+                session.add(paper)
+                session.commit()
+            except IntegrityError as e:
+                # If the item exists, can ignore, don't log
+                session.rollback()
+                num_added_ids = num_added_ids - 1
+
+        session.close()
+
+        # Message to be displayed on the index page
+        logger.info(f"Manually added {len(retrieved_paper_ids)} papers and stored {num_added_ids}")
+        flash(f"Uploaded {len(retrieved_paper_ids)} papers and stored {num_added_ids}")
+        return redirect(url_for("index"))
+
+    return render_template("upload_csv.html")
+
+
+@bp.route("/export", methods=["GET"])
+def export_papers():
+    """
+    Endpoint that handles exporting of the entire paper database to a CSV file
+    """
+
+    return redirect(url_for("index"))
