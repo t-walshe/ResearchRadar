@@ -2,6 +2,7 @@ from __future__ import annotations
 from utils.default_logging import configure_default_logging
 from datetime import datetime, timedelta
 import os
+import io
 from utils.typing import PythonScalar
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
@@ -14,7 +15,7 @@ from pathlib import Path
 import pandas as pd
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for, current_app, jsonify
+    Blueprint, flash, g, redirect, render_template, request, url_for, current_app, jsonify, send_file
 )
 
 from bokeh.resources import CDN
@@ -194,4 +195,12 @@ def export_papers():
     Endpoint that handles exporting of the entire paper database to a CSV file
     """
 
-    return redirect(url_for("index"))
+    # Read all papers from the database
+    data: list = Paper.query.all()
+    data: list[dict] = [{"Id": entry.arxiv_id, "Date": entry.index_date} for entry in data]
+
+    # Use Pandas to convert to CSV
+    df = pd.DataFrame(data)
+    return send_file(io.BytesIO(df.to_csv(index=False).encode("utf8")),
+                     download_name="exported_papers.csv",
+                     as_attachment=True)
