@@ -86,6 +86,7 @@ def configure_blueprints(app: Flask):
     app.add_url_rule("/", endpoint="index")
     app.add_url_rule("/papers", endpoint="get_papers")
     app.add_url_rule("/upload", endpoint="upload_papers")
+    app.add_url_rule("/export", endpoint="export_papers")
 
     import scraper
     app.register_blueprint(scraper.bp)
