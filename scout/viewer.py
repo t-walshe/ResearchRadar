@@ -57,7 +57,7 @@ def index():
 
     return render_template("index.html",
                            current_time=current_time,
-                           num_papers=num_papers,
+                           num_papers=f"{num_papers:,}",
                            graph_data=graph_data,
                            cdn_js=cdn_js,
                            cdn_css=cdn_css)
@@ -182,7 +182,7 @@ def upload_papers():
 
         # Message to be displayed on the index page
         logger.info(f"Manually added {len(retrieved_paper_ids)} papers and stored {num_added_ids}")
-        flash(f"Uploaded {len(retrieved_paper_ids)} papers and stored {num_added_ids}")
+        flash(f"Uploaded {len(retrieved_paper_ids):,} papers and stored {num_added_ids:,}")
         return redirect(url_for("index"))
 
     return render_template("upload_csv.html")
